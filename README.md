@@ -2,7 +2,11 @@
 
 A status bar in one C file, speaking the i3bar JSON protocol to sway.
 
-![the bar](docs/bar.png)
+![the bar](docs/bar-working.png)
+
+A close-up of the squares: peach is working, lavender is idle.
+
+![the squares](docs/bar-closeup.png)
 
 It shows volume, wifi, battery, CPU and the clock, and one coloured square per
 [maki](https://github.com/tontinton/maki) session, ordered by the workspace that
