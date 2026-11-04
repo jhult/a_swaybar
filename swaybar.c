@@ -1,17 +1,27 @@
-/* swaybar - a single-process status bar.
+/* swaybar - a single-process status bar for sway.
  *
  * NOTE: named swaybar on purpose, but kept at ~/.config/sway/swaybar, NOT on
  * PATH: sway spawns its own renderer as "swaybar" via PATH, so a binary of
  * this name on PATH would hijack it. Reference it by absolute path.
  *
- * Replaces status.sh. Emits the i3bar JSON protocol: volume, wifi, battery,
- * cpu, clock, and one coloured block per maki session, ordered by workspace.
+ * Replaces a shell script that re-ran itself on a timer. Emits the i3bar JSON
+ * protocol: volume, wifi, battery, cpu, clock, and one coloured square per
+ * maki session, ordered by the workspace that session runs in.
+ *
+ * maki is the agentic TUI this machine runs all its work in (one maki process,
+ * many sessions). It cannot show a status bar, and the bar must not link
+ * against it, so maki-side plugin publishes one file per process and the bar
+ * reads it: https://github.com/zipadoodlez/maki-session-status
+ *   one square per live session, peach when working, lavender when idle or
+ *   waiting for input, in workspace order.
  *
  * Volume comes from pipewire-pulse via libpulse and is read on a change
  * event, not polled: at rest pipewire-pulse does no work for us.
  *
  * Build:
- *   gcc -O2 -Wall -o ~/.config/sway/swaybar swaybar.c $(pkg-config --cflags --libs libpulse)
+ *   make
+ * or:
+ *   gcc -O2 -Wall -o swaybar swaybar.c $(pkg-config --cflags --libs libpulse)
  */
 
 #define _GNU_SOURCE
