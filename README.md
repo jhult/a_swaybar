@@ -44,6 +44,39 @@ The bar watches the status directory with `inotify`, so a square changes on the
 next tick after maki writes, not a poll interval later. Dead processes are swept
 by the bar, and maki deletes its own file on session end, so neither can leak.
 
+## What it costs
+
+Measured on the machine this was written on, one minute each, same conditions.
+The comparison is the shell script this replaces, which sway used to run once
+per second.
+
+| | CPU over 60 s | share of one core | wakes |
+|---|---|---|---|
+| shell script, once per second | 1,140 ms | 1.90 % | ~60 |
+| this bar | 150 ms | 0.25 % | ~60 |
+
+About 7.6 times less CPU. 150 ms is close to the floor: a process that only
+sleeps still costs something.
+
+The old cost was almost all one `wpctl get-volume` child per second. Each call
+is about 10 ms of fork, exec, connect and exit, on top of the shell that read
+`/proc` and formatted the same text again every second.
+
+The bar wakes about as often as the script did. The saving is in the work per
+wake, not in the number of wakes:
+
+- One process, not three. The libpulse connection lives as long as the bar, and
+  volume is read only when PulseAudio reports a change.
+- One `poll()` per tick over the pipewire fd and an `inotify` watch, instead of
+  re-reading files.
+- No output when nothing changed. The frame is compared and only written to sway
+  when it differs, so identical ticks never force a re-layout.
+- The wait is recomputed to the next whole second on every wake, so a late wake
+  self-corrects. The clock never skips a second.
+
+To measure it again: read field 14 and 15 of `/proc/<pid>/stat` for the bar, or
+run the old script bounded and read its CPU time from `getrusage`.
+
 ## Build and run
 
 ```sh
